@@ -1,68 +1,156 @@
 # download the data
 library(tidyverse)
+library(forcats)
+library(ggplot2)
+library(dplyr)
+source("water_pump_utils.R")
 
 
-x_train_url = "https://drivendata-prod.s3.amazonaws.com/data/7/public/4910797b-ee55-40a7-8668-10efd5c1b960.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIARVBOBDCY3EFSLNZR%2F20200907%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20200907T134912Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=cc4b3945d2dab4e2ed0eb69336ef0c72ae6b0c322253f8d4c9b2bf988ce52baf"
-x_train_file = "x_data.csv"
-y_train_url = "https://drivendata-prod.s3.amazonaws.com/data/7/public/0bf8bc6e-30d0-4c50-956a-603fc693d966.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIARVBOBDCY3EFSLNZR%2F20200907%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20200907T134912Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=a1a91cd6bff8256e27d9fb25388e538de52987f6209c1e6a7e0e857f02c9f944"
-y_train_file = "y_train.csv"
-x_test_url= "https://drivendata-prod.s3.amazonaws.com/data/7/public/702ddfc5-68cd-4d1d-a0de-f5f566f76d91.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIARVBOBDCY3EFSLNZR%2F20200907%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20200907T134912Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=25df6d17d82ec9d8ab1c3e7c2a3e5dcef091b5d380ee6027a919e3d2d8a27139"
-x_test_file = "x_test.csv"
-submission_url = "https://drivendata-prod.s3.amazonaws.com/data/7/public/SubmissionFormat.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIARVBOBDCY3EFSLNZR%2F20200907%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20200907T134912Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=49234131d76a37636ad253669058d6b7b6eb91ecb5506cb20f00af8328a55c57"
-submission_file = "submission.csv"
-file2url = c(x_train_url, y_train_url, x_test_url, submission_url)
-names(file2url) <- c(x_train_file, y_train_file, x_test_file, submission_file)
-file2url
-for (file_ in names(file2url)){
-  print (file_)
-  if (file.exists(file_)){
-    print(paste(file_, "exists, no nothing to do"))
-  } else {
-    print(paste(file_, "not there , need to download")) 
-    url = file2url[[file_]]
-    download.file(url, destfile=file_, method="auto", quiet = FALSE, 
-                  mode = "w",
-                  cacheOK = TRUE,
-                  extra = getOption("download.file.extra"),
-                  headers = NULL)    
+res <- download_data()
+x_train <- read_csv("x_train.csv")
+y_train <- read_csv("y_train.csv")
+x_test <- read_csv("x_test.csv")
+
+
+tests <- function(){
+
+result = tryCatch(
+  {
+    destfile <- "junk"
+    url = "https://drivendata-prod.s3.amazonaws.com/data/7/public/SubmissionFormat.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIARVBOBDCY3EFSLNZR%2F20200907%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20200907T134912Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=49234131d76a37636ad253669058d6b7b6eb91ecb5506cb20f00af8328a55c57"
+   res <- download.file("http://github.com/jhmuller/DD_water_pumps/x_values.csv", 
+                destfile="junk", 
+                method="auto", quiet = FALSE, 
+                mode = "w",
+                cacheOK = TRUE,
+                extra = getOption("download.file.extra"),
+                headers = NULL)
+  }  , warning = function(w) {
+  print(paste("Warning", w))
+    print(paste("Deleting file ", destfile))
+    file.remove(destfile)
+    return (1)
+}, error = function(e) {
+  print("Error")
+  print(e)
+  print(paste("Deleting file ", destfile))
+  file.remove(destfile)  
+  return (-1)
+}, finally = {
+  if (file.exists(destfile)){
+    print("Cleaning up")
+    return (0)
   }
+} # finally
+)
+
+downloader::download
+url <- "http://en.wikipedia.org"
+destfile <- "junk"
+res <- download(url, destfile=destfile)
+res
+x <- httr::GET("http://en.wikipedia.org/nothing")
+x
+curl = getCurlHandle()
+x = getURL("https://en.wikipedia.org/asdfasdfasdf", curl = curl)
+getCurlInfo(curl)$response.code
+options("warn")
+result
+file.exits("junk")
 }
-getwd()
-list.files()
 
-x_train <- read_csv(x_train_file)
-y_train <- read_csv(y_train_file)
-x_test <- read_csv(x_test_file)
-submission_sample <- read_csv(submission_file)
 
-head(submission_sample)
 
-length(unique(xdf[["id"]]))
-sapply(xdf, typeof)
-sapply(xdf, class)
-sapply(xdf, function(x) length(unique(x)))
-ggplot(xdf, aes(x = extraction_type_class)) + 
-  geom_bar() + 
+
+
+#submission_sample <- read_csv("submission.csv")
+#head(submission_sample)
+
+length(unique(x_train[["id"]]))
+sapply(x_train, typeof)
+sapply(x_train, class)
+sapply(x_train, function(x) length(unique(x)))
+
+# convert all char columns to factors
+x_train[sapply(x_train, is.character)] <- lapply(x_train[sapply(x_train, is.character)], 
+              as.factor)
+# convert the _code columns to factors
+code_cols <- colnames(x_train)[grep("_code", colnames(x_train))] 
+x_train[code_cols] <- lapply(xtrain[code_cols], as.factor)
+
+ggplot(x_train, aes(x = basin)) + 
+  geom_histogram(stat="count") + 
   coord_flip()
 
-class(xdf[[colnames(xdf)[1]]])
 
-numcols = c()
-for (i in seq_along(colnames(xdf))){
-  col = colnames(xdf)[i]
-  nuni = length(unique(xdf[[col]]))
-  class_ = class(xdf[[col]])
-  if (class_ == "numeric"){
-    numcols <- c(numcols, col)
+
+ggplot(x_train, aes(x = amount_tsh)) + 
+  geom_density() + 
+  coord_flip()
+
+
+
+
+str(xdf)
+unique_vals(xdf)
+make_factors <- function(tdf){
+  for (i in seq_along(colnames(tdf))){
+    col = colnames(tdf)[i]
+    nunique = length(unique(tdf[[col]]))
+    class_ = class(tdf[[col]])
+    if (class_ == "character"){
+      print(paste("making ", col, " a factor"))
+      tdf[col] = factor(tdf[col])
+    }
+    print(paste(col, nunique, class_))
   }
-  print(paste(col, nuni, class_))
+  return (tdf)
 }
-numcols
+
+sapply(x_train, class)
+sapply(xdf, class)
+xdf <- make_factors(x_train)
+yvar <- "district_code"
+xvars <- colnames(x_train)
+xvars <- yvars[xvars != yvar]
+
+library(StatMatch)
+pw.assoc(region_code ~ district_code, xdf)
+pw.assoc(district_code ~ region_code, xdf)
+head(xdf)
+colnames(xdf)
+library(DescTools)
+TheilU(x_train[["region_code"]], x_train[["region"]] )
+
+xs <- chisq.test(x_train[["region_code"]], x_train[["district_code"]], correct=F)
+xs <- xs$statistic / length(x_train[["region_code"]])
+xs
+length(x_train["district_code"])
+formula_ <- as.formula(paste(yvar, " ~ ", paste(xvars, collapse="+")))
+library(rpart)
+rpart(formula_, x_train)
+library(rpart)
+colnames(x_train)
+tbl <-  xtabs(~region+district_code, x_train)
+chisq.test(tbl)
+?chisq.test
 ?xtabs
+ x_train["region_code"]
+ unique_vals(x_train, cols=c("region", "region_code", "district_code", "lga", "ward"))
+
+# variable notes
+# id is unique
+colnames(x_train)[1:10]
+#length(
+length( unique(x_train[["amount_tsh"]]))
+dim(x_train)
+group_by(x_train, ~ id)
+colnames(x_train)
+
 tbl <- xtabs(formula=~ region_code+district_code, xdf)
 tbl
 xtabs(formula=~ payment+payment_type, xdf)
-
+summary(x_train["num_private"])
 num_vars <- c("date_recorded", "gps_height", "num_private",
               "region_code", "disgtrict_code")
 cat_vars <- c("basin", "region", "public_meeting", 
@@ -70,11 +158,9 @@ cat_vars <- c("basin", "region", "public_meeting",
               "extraction_type", "management",
               "payment", "water_quality", "quantity", 
               "source", "waterpoint_type")
-numcols
-chisq.test(tbl)
-getwd()
-list.files(getwd())
-summary(xdf)
 
-xtrain <- xdf %>% dplyr::sample_frac(.75)
-xvalid  <- dplyr::anti_join(xdf, xtrain, by = 'id')
+
+summary(x_train['date_recorded'])
+
+x_train_t <- xdf %>% dplyr::sample_frac(.75)
+x_train_v  <- dplyr::anti_join(xdf, xtrain, by = 'id')
