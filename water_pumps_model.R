@@ -42,7 +42,7 @@ unique_vals(train, c("public_meeting", "scheme_management", "permit"))
 
 colnames(train)
 plot_col(train, "permit")
-
+length(xvars)
 # Random Forest
 form_ <- as.formula(paste(yvar, " ~ ",paste(xvars, collapse=" + ")))
 rfm <- randomForest(form_, data=train)
